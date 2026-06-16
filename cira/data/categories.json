@@ -32,7 +32,7 @@
     },
     {
       "id": "hacking-damage-computer",
-      "name": "Hacking / Damage to Computer, Computer System, etc.",
+      "name": "Hacking / Damage to computer, computer system etc.",
       "subcategories": [
         "damage-to-computer-systems",
         "email-hacking",
@@ -43,7 +43,7 @@
     },
     {
       "id": "other-categories",
-      "name": "Other Top-Level Categories",
+      "name": "Other Main Categories",
       "subcategories": [
         "online-cyber-trafficking",
         "online-gambling-betting",
@@ -105,37 +105,37 @@
     },
     {
       "id": "profile-hacking-identity-theft",
-      "name": "Profile Hacking / Identity Theft",
+      "name": "Profile Hacking/ Identity Theft",
       "category_id": "online-social-media",
       "playbook_path": "playbooks/online_social_media/profile-hacking-identity-theft.md"
     },
     {
       "id": "provocative-speech-unlawful-acts",
-      "name": "Provocative Speech for Unlawful Acts",
+      "name": "Provocative Speech for unlawful acts",
       "category_id": "online-social-media",
       "playbook_path": "playbooks/online_social_media/provocative-speech-unlawful-acts.md"
     },
     {
       "id": "aadhaar-enabled-payment-system",
-      "name": "Aadhaar Enabled Payment System (AEPS)",
+      "name": "Aadhar Enabled Payment System (AEPS)",
       "category_id": "online-financial-fraud",
       "playbook_path": "playbooks/online_financial_fraud/aadhaar-enabled-payment-system.md"
     },
     {
       "id": "business-email-compromise",
-      "name": "Business Email Compromise / Email Takeover",
+      "name": "Business Email Compromise/Email Takeover",
       "category_id": "online-financial-fraud",
       "playbook_path": "playbooks/online_financial_fraud/business-email-compromise.md"
     },
     {
       "id": "debit-credit-card-sim-swap-fraud",
-      "name": "Debit/Credit Card Fraud / SIM Swap Fraud",
+      "name": "Debit/Credit Card Fraud/Sim Swap Fraud",
       "category_id": "online-financial-fraud",
       "playbook_path": "playbooks/online_financial_fraud/debit-credit-card-sim-swap-fraud.md"
     },
     {
       "id": "demat-depository-fraud",
-      "name": "Demat / Depository Fraud",
+      "name": "Demat/Depository Fraud",
       "category_id": "online-financial-fraud",
       "playbook_path": "playbooks/online_financial_fraud/demat-depository-fraud.md"
     },
@@ -147,7 +147,7 @@
     },
     {
       "id": "fraud-call-vishing",
-      "name": "Fraud Call / Vishing",
+      "name": "Fraud Call/Vishing",
       "category_id": "online-financial-fraud",
       "playbook_path": "playbooks/online_financial_fraud/fraud-call-vishing.md"
     },
@@ -165,7 +165,7 @@
     },
     {
       "id": "damage-to-computer-systems",
-      "name": "Damage to Computer / Computer Systems, etc.",
+      "name": "Damage to computer, computer systems etc.",
       "category_id": "hacking-damage-computer",
       "playbook_path": "playbooks/hacking_damage_computer/damage-to-computer-systems.md"
     },
@@ -177,19 +177,19 @@
     },
     {
       "id": "tampering-computer-source-documents",
-      "name": "Tampering with Computer Source Documents",
+      "name": "Tampering with computer source documents",
       "category_id": "hacking-damage-computer",
       "playbook_path": "playbooks/hacking_damage_computer/tampering-computer-source-documents.md"
     },
     {
       "id": "unauthorised-access-data-breach",
-      "name": "Unauthorised Access / Data Breach",
+      "name": "Unauthorised Access/Data Breach",
       "category_id": "hacking-damage-computer",
       "playbook_path": "playbooks/hacking_damage_computer/unauthorised-access-data-breach.md"
     },
     {
       "id": "website-defacement-hacking",
-      "name": "Website Defacement / Hacking",
+      "name": "Website Defacement/Hacking",
       "category_id": "hacking-damage-computer",
       "playbook_path": "playbooks/hacking_damage_computer/website-defacement-hacking.md"
     },

@@ -50,10 +50,10 @@ def map_to_official_category(ai_output: dict) -> dict:
 
     if best_match is None:
         return {
-            "category_id": None,
-            "category_name": None,
-            "subcategory_id": None,
-            "subcategory_name": None,
+            "category_id": "other-categories",
+            "category_name": "Other Main Categories",
+            "subcategory_id": "any-other-cyber-crime",
+            "subcategory_name": "Any Other Cyber Crime",
             "match_confidence": 0.0,
             "needs_confirmation": True,
         }

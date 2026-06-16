@@ -1,0 +1,64 @@
+{
+  "national_resources": [
+    {
+      "name": "National Cyber Crime Reporting Portal",
+      "description": "Official government portal for filing formal complaints for all cybercrimes.",
+      "url": "https://cybercrime.gov.in",
+      "helpline": "cybercrime.gov.in"
+    },
+    {
+      "name": "National Cyber Crime Helpline (1930)",
+      "description": "Dedicated call center for immediate reporting and freezing of digital financial fraud funds.",
+      "url": "tel:1930",
+      "helpline": "Call 1930 (24/7)"
+    },
+    {
+      "name": "CERT-In (Computer Emergency Response)",
+      "description": "National agency responding to computer security incidents and publishing threat warnings.",
+      "url": "https://www.cert-in.org.in",
+      "helpline": "cert-in.org.in"
+    },
+    {
+      "name": "RBI Ombudsman (Financial Disputes)",
+      "description": "Statutory body for resolution of banking and digital wallet disputes (file within 3 days).",
+      "url": "https://cms.rbi.org.in",
+      "helpline": "cms.rbi.org.in"
+    },
+    {
+      "name": "Sanchar Saathi Portal (DoT)",
+      "description": "Official portal to block lost/stolen mobile connections and report duplicate SIM cards.",
+      "url": "https://sancharsaathi.gov.in",
+      "helpline": "sancharsaathi.gov.in"
+    }
+  ],
+  "threat_intelligence": [
+    {
+      "scam_name": "Digital Arrest Scam",
+      "description": "Fraudsters pose as central law enforcement (CBI, Customs, Narcotics) over WhatsApp/Skype video calls, claiming you sent illegal packages, and placing you under fake 'digital arrest' to extort money.",
+      "example_script": "\"Your Aadhaar card was linked to a narcotics shipment. You must remain on camera for digital arrest. Transfer Rs 3 Lakhs security deposit to avoid imprisonment.\"",
+      "severity": "CRITICAL",
+      "defense_step": "Hang up immediately. Government agencies never place citizens under digital arrest, demand money over video calls, or conduct trials online."
+    },
+    {
+      "scam_name": "QR Code Refund Fraud",
+      "description": "Scammers convince victims they are sending them a 'refund' or 'payment' on WhatsApp/OLX and ask the victim to scan a QR code to receive the money, which actually debits the victim's account.",
+      "example_script": "\"Scan this QR code to claim your Rs. 5,000 cash back from the online marketplace immediately. Enter your UPI PIN to approve the credit.\"",
+      "severity": "HIGH",
+      "defense_step": "Never scan a QR code or enter your UPI PIN to receive money. Scanning a QR code is exclusively used for making payments, not receiving them."
+    },
+    {
+      "scam_name": "Remote Access Fraud",
+      "description": "Fraudsters contact victims posing as tech support or bank officers and convince them to install screen-sharing applications (AnyDesk, TeamViewer) to fix a bug or verify a transaction, stealing OTPs and bank logins.",
+      "example_script": "\"Your mobile banking security certificate has expired. Install the official support app AnyDesk from PlayStore and give us the 9-digit access code.\"",
+      "severity": "CRITICAL",
+      "defense_step": "Never share access codes or install remote assistance software at the behest of cold callers. Keep your bank credentials and OTP screen strictly private."
+    },
+    {
+      "scam_name": "Work From Home (WFH) Job Scam",
+      "description": "Victims are recruited via Telegram/WhatsApp for simple jobs (liking videos, reviewing products). After earning minor payouts, they are coerced into depositing larger 'investments' or registration fees to withdraw their commissions.",
+      "example_script": "\"Earn Rs 5,000 per day by rating YouTube videos. Join our task group. To unlock VIP tasks and withdraw your balance, pay a refundable Rs 15,000 security deposit.\"",
+      "severity": "HIGH",
+      "defense_step": "Ignore unverified Telegram or WhatsApp recruiters. Genuine employers never charge security deposits or demand payments to pay out earned wages."
+    }
+  ]
+}
