@@ -1,23 +1,37 @@
-## This file contains all the evaluation critera needs to be paased from the User responses and evidence.
-
 # Cybercrime Evidence Mapping Matrix
 
 ## Purpose
 
-For each identified cybercrime category, determine:
+This file defines the evaluation logic for an AI agent that reviews evidence a user has submitted for a cybercrime report. For each identified cybercrime category, the agent must:
 
-1. Required evidence
-2. Optional evidence
-3. Missing evidence
-4. Evidence completeness score
+1. Identify the correct category (or categories) for the complaint.
+2. Compare submitted evidence against that category's **Required Evidence** list.
+3. Calculate an **Evidence Completeness Score**.
+4. Check for **Critical Missing Flags**.
+5. Output a **Verdict** with a clear, user-facing explanation of what is missing.
 
-The assistant must compare collected evidence against the expected evidence list for that category.
+Evidence is scored on presence only (collected / not collected). Quality of evidence (e.g. blurry vs. clear screenshot) is not scored, but if an item is present yet clearly unusable as evidence (e.g. a screenshot with no visible data), treat it as **not collected**.
+
+Optional Evidence is never scored. It is shown to the user as "nice to have" only and does not affect the score in either direction.
+
+---
+
+## How to Use This Matrix (Agent Instructions)
+
+For every user submission:
+
+1. **Classify.** Match the complaint to one category below using its description and required-evidence pattern. If the complaint clearly spans more than one category (e.g. a Remote Access Scam that led to a UPI Fraud), evaluate it against **each** relevant category separately and report both. If no category fits, use the **Uncategorized / Other Cybercrime** fallback at the end of this file rather than forcing a poor match.
+2. **Extract.** Go through everything the user has provided (text description, uploaded files, screenshots, IDs, dates) and map each piece to a Required or Optional Evidence item for the matched category. Do not credit an item unless it is clearly present and intelligible.
+3. **Score.** Apply the Evidence Completeness Formula below using only the Required Evidence list for that category.
+4. **Flag.** Check the category's Critical Missing Flags. These can force a `NEEDS_MORE_INFORMATION` verdict even at a high score.
+5. **Verdict.** Apply the Evaluation Rule to produce one of the three verdicts.
+6. **Explain.** Always list which specific Required Evidence items are missing, in plain language, so the user knows exactly what to provide next. Never just output a score with no explanation.
 
 ---
 
 # 1. UPI Fraud
 
-## Required Evidence
+## Required Evidence (7)
 
 * UTR Number
 * Transaction ID
@@ -25,7 +39,7 @@ The assistant must compare collected evidence against the expected evidence list
 * Date and time of transaction
 * Amount transferred
 * Screenshot of transaction
-* Beneficiary account details (if visible)
+* Beneficiary account details (if visible to the victim)
 
 ## Optional Evidence
 
@@ -36,7 +50,7 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Critical Missing Flags
 
-* No UTR
+* No UTR Number
 * No transaction screenshot
 * No amount information
 
@@ -44,7 +58,7 @@ The assistant must compare collected evidence against the expected evidence list
 
 # 2. Banking Fraud
 
-## Required Evidence
+## Required Evidence (6)
 
 * Bank name
 * Account number (masked)
@@ -61,18 +75,18 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Critical Missing Flags
 
-* No transaction proof
-* No bank details
-* No transaction timeline
+* No transaction proof (no Transaction IDs, SMS alerts, or Debit notifications)
+* No bank details (no Bank name or Account number)
+* No transaction timeline (no Date and time)
 
 ---
 
 # 3. SIM Swap Fraud
 
-## Required Evidence
+## Required Evidence (4)
 
 * Mobile number affected
-* Loss of network screenshot
+* Loss-of-network screenshot
 * SMS from telecom operator
 * Date and time service stopped
 
@@ -92,31 +106,31 @@ The assistant must compare collected evidence against the expected evidence list
 
 # 4. WhatsApp Account Hijack
 
-## Required Evidence
+## Required Evidence (4)
 
 * Affected phone number
 * WhatsApp login alert
 * Screenshot of logout
-* Unauthorized messages
+* Unauthorized messages sent from the account
 
 ## Optional Evidence
 
-* Linked device screenshots
-* Fraudster messages
+* Linked-device screenshots
+* Fraudster messages received by the victim
 
 ## Critical Missing Flags
 
-* No screenshots
-* No account identifier
+* No screenshots (neither login alert nor logout screenshot)
+* No account identifier (no affected phone number)
 
 ---
 
 # 5. Social Media Account Takeover
 
-## Required Evidence
+## Required Evidence (5)
 
 * Platform name
-* Username/profile URL
+* Username / profile URL
 * Login alert emails
 * Recovery emails
 * Unauthorized posts/messages
@@ -128,14 +142,14 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Critical Missing Flags
 
-* No profile information
-* No login evidence
+* No profile information (no Platform name or Username/profile URL)
+* No login evidence (no Login alert emails or Recovery emails)
 
 ---
 
 # 6. Phishing Scam
 
-## Required Evidence
+## Required Evidence (4)
 
 * URL clicked
 * Screenshot of website
@@ -156,7 +170,7 @@ The assistant must compare collected evidence against the expected evidence list
 
 # 7. QR Code Scam
 
-## Required Evidence
+## Required Evidence (4)
 
 * QR code image
 * Payment screenshot
@@ -170,20 +184,20 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Critical Missing Flags
 
-* No QR screenshot
-* No transaction evidence
+* No QR code screenshot
+* No transaction evidence (no Payment screenshot and no UTR number)
 
 ---
 
 # 8. Remote Access Scam
 
-## Required Evidence
+## Required Evidence (5)
 
 * Application installed
 * App name
 * Installation time
 * Screenshots of permissions granted
-* Transaction history (if money loss occurred)
+* Transaction history (only required if money loss occurred; see note below)
 
 ## Optional Evidence
 
@@ -192,14 +206,16 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Critical Missing Flags
 
-* Unknown app
-* No device evidence
+* Unknown app (no App name)
+* No device evidence (no Screenshots of permissions granted)
+
+**Note:** If the user reports no financial loss, "Transaction history" is excluded from both the required count and the denominator in the completeness formula for this case.
 
 ---
 
 # 9. Mobile Phone Hacking / Malware
 
-## Required Evidence
+## Required Evidence (5)
 
 * Device type
 * OS version
@@ -215,14 +231,14 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Critical Missing Flags
 
-* Unknown suspicious app
+* Unknown suspicious app (no Suspicious application name)
 * No screenshots
 
 ---
 
 # 10. Investment Scam
 
-## Required Evidence
+## Required Evidence (5)
 
 * Platform name
 * Website URL
@@ -232,19 +248,19 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Optional Evidence
 
-* Telegram chats
+* Telegram/chat group history
 * Account manager details
 
 ## Critical Missing Flags
 
-* No transaction proof
-* No platform information
+* No transaction proof (no Transaction records and no Deposit screenshots)
+* No platform information (no Platform name or Website URL)
 
 ---
 
 # 11. Job Scam
 
-## Required Evidence
+## Required Evidence (5)
 
 * Job posting
 * Company name
@@ -259,14 +275,14 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Critical Missing Flags
 
-* No communication evidence
-* No payment proof
+* No communication evidence (no Communication screenshots)
+* No payment proof (no Payment request evidence) — only applies if the user reports a financial loss
 
 ---
 
 # 12. E-Commerce / Shopping Fraud
 
-## Required Evidence
+## Required Evidence (4)
 
 * Order ID
 * Seller profile
@@ -276,43 +292,45 @@ The assistant must compare collected evidence against the expected evidence list
 ## Optional Evidence
 
 * Tracking information
-* Chat conversations
+* Chat conversations with seller
 
 ## Critical Missing Flags
 
-* No order details
-* No payment proof
+* No order details (no Order ID)
+* No payment proof (no Payment receipt)
 
 ---
 
 # 13. Sextortion
 
-## Required Evidence
+## Required Evidence (4)
 
 * Threat messages
-* Usernames
+* Usernames/handles of attacker
 * Payment demands
-* Wallet/account details used by attacker
+* Wallet/account details used by attacker (only if payment was demanded via a specific account/wallet)
 
 ## Optional Evidence
 
-* Images/videos shared
-* Social media profiles
+* Images/videos shared (handle per platform sensitive-content policy; never require upload, accept confirmation of existence instead)
+* Social media profiles of attacker
 
 ## Critical Missing Flags
 
-* No threat evidence
-* No account identifiers
+* No threat evidence (no Threat messages)
+* No account identifiers (no Usernames/handles)
+
+**Note:** Do not require the victim to upload sensitive images/videos as evidence. Their existence and description are sufficient; flag this item as collected based on the victim's confirmation alone.
 
 ---
 
 # 14. Cyber Bullying / Harassment
 
-## Required Evidence
+## Required Evidence (4)
 
 * Messages/posts
-* URLs
-* Usernames
+* URLs (where the content is hosted)
+* Usernames of offender(s)
 * Dates and timestamps
 
 ## Optional Evidence
@@ -321,71 +339,106 @@ The assistant must compare collected evidence against the expected evidence list
 
 ## Critical Missing Flags
 
-* No screenshots
-* No offender identifier
+* No screenshots (no Messages/posts)
+* No offender identifier (no Usernames)
 
 ---
 
 # 15. Identity Theft
 
-## Required Evidence
+## Required Evidence (3)
 
-* Misused document details
-* Fraudulent account details
-* Emails/messages showing misuse
+* Misused document details (e.g. which ID — Aadhaar, PAN, passport — was misused)
+* Fraudulent account/transaction details created using the identity
+* Emails/messages/notices showing the misuse
 
 ## Optional Evidence
 
 * Credit reports
-* Complaint references
+* Prior complaint reference numbers
 
 ## Critical Missing Flags
 
-* No proof of misuse
-* No affected identity document
+* No proof of misuse (no Fraudulent account/transaction details and no Emails/messages showing misuse)
+* No affected identity document specified
+
+---
+
+# 16. Uncategorized / Other Cybercrime (Fallback)
+
+Use this category only when the complaint does not reasonably match any of categories 1–15.
+
+## Required Evidence (4)
+
+* Clear description of what happened, including platform/channel involved
+* Date and time of incident
+* Any screenshots, messages, or files related to the incident
+* Identifier of the other party (username, phone number, account, or URL), if known
+
+## Optional Evidence
+
+* Witness statements
+* Any financial records, if money was involved
+
+## Critical Missing Flags
+
+* No incident description
+* No timeline
+* No supporting evidence of any kind
+
+**Note:** If a submission scored under this fallback category later turns out to match a specific category once more detail is provided, re-classify and re-score under that category instead.
 
 ---
 
 # Evidence Completeness Formula
 
-For each category:
+For each matched category:
 
-Evidence Completeness (%) =
-(Number of Required Evidence Collected /
-Total Required Evidence) × 100
+```
+Evidence Completeness (%) = (Required Evidence Items Collected / Total Applicable Required Evidence Items) × 100
+```
 
-Example:
+"Total Applicable Required Evidence Items" excludes any item marked conditional in that category's notes (e.g. "only if money loss occurred") when the condition does not apply to this case. Round to the nearest whole number.
 
-UPI Fraud
+### Worked Example — UPI Fraud
 
 Collected:
-✓ UTR
-✓ Amount
-✓ Screenshot
-✗ Beneficiary Details
-✓ Date/Time
+* UTR Number — ✓
+* Transaction ID — ✓
+* Bank account involved — ✓
+* Date and time of transaction — ✓
+* Amount transferred — ✓
+* Screenshot of transaction — ✓
+* Beneficiary account details — ✗ (not visible to victim, but item is still applicable since visibility is about availability to the platform, not a valid exemption)
 
-4 / 5 = 80%
+6 / 7 = 86%
 
-Evidence Completeness = 80%
+Evidence Completeness = 86%
+
+This also illustrates the Evaluation Rule below: 86% falls in the 70–89% band, and since no Critical Missing Flag is triggered (UTR, screenshot, and amount are all present), the verdict is `NEEDS_MORE_INFORMATION` rather than `REPORT_READY`, because completeness is below the 90% threshold — even though no flag fired. The agent should tell the user specifically that beneficiary account details are still needed if available.
 
 ---
 
 # Evaluation Rule
 
-If Evidence Completeness < 70%
+Apply in this order:
 
-Verdict:
-NEEDS_MORE_INFORMATION
+1. **If any Critical Missing Flag for the matched category is triggered → Verdict: `NEEDS_MORE_INFORMATION`**, regardless of completeness score. State which flag(s) triggered.
+2. **Else if Evidence Completeness < 70% → Verdict: `NEEDS_MORE_INFORMATION`.**
+3. **Else if 70% ≤ Evidence Completeness < 90% → Verdict: `NEEDS_MORE_INFORMATION`.** The submission is on track but not yet sufficient; list the specific missing items.
+4. **Else if Evidence Completeness ≥ 90% → Verdict: `REPORT_READY`.**
 
-If Evidence Completeness ≥ 90%
+There is no separate passing band between "needs more information" and "report ready" — anything below 90%, or with a critical flag, is not report-ready. This removes the ambiguity in scores between 70–89% that the original rule left undefined.
 
-Verdict:
-REPORT_READY
+## Output Format
 
-If any Critical Missing Flag exists
+For every evaluation, the agent should output:
 
-Verdict:
-NEEDS_MORE_INFORMATION regardless of score.
+* Matched category (or categories, if more than one applies)
+* Evidence Completeness Score (%)
+* List of Required Evidence items: collected vs. missing
+* Any Critical Missing Flags triggered
+* Final Verdict
+* A short, plain-language note to the user listing exactly what additional evidence would move the case forward
 
-
+Do not output the score alone without the missing-items explanation — the user needs actionable next steps, not just a number.
