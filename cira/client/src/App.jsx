@@ -610,10 +610,10 @@ export default function App() {
         </div>
 
         {/* ── CENTER COLUMN (AI Chat & Case File) ── */}
-        <div className="w-[55%] flex flex-col gap-4 overflow-y-auto custom-scrollbar px-1">
+        <div className="w-[55%] flex flex-col gap-4 overflow-hidden px-1 h-full min-h-0">
           
           {/* Chat Feed Box */}
-          <div className="bg-white border border-gray-200 rounded-2xl flex flex-col h-[520px] shadow-sm relative overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-2xl flex flex-col flex-1 min-h-0 shadow-sm relative overflow-hidden">
             
             {/* Messages Feed */}
             <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar">
@@ -760,10 +760,10 @@ export default function App() {
           </div>
 
           {/* Active Case File Box */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3 flex-1 min-h-0 overflow-hidden">
             
             {/* Header / Classification dropdown */}
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-2.5 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-gray-800 uppercase tracking-widest">Active Case File</span>
               </div>
@@ -774,126 +774,130 @@ export default function App() {
               )}
             </div>
 
-            {/* Classification selectors */}
-            <div className="grid grid-cols-1 gap-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Classification Override</label>
-                <span className="text-[9.5px] text-gray-400 font-semibold italic">Based on National Cyber Crime Reporting Portal</span>
+            {/* Scrollable contents container */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 pr-1">
+              
+              {/* Classification selectors */}
+              <div className="grid grid-cols-1 gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Classification Override</label>
+                  <span className="text-[9.5px] text-gray-400 font-semibold italic">Based on National Cyber Crime Reporting Portal</span>
+                </div>
+                <select
+                  value={classification?.subcategory_id || ''}
+                  onChange={e => handleClassificationOverride(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+                >
+                  <option value="" disabled>-- Select manual category override --</option>
+                  {config.subcategories.map(sub => {
+                    const cat = config.categories.find(c => c.id === sub.category_id);
+                    const catPrefix = cat ? `${cat.name} — ` : '';
+                    return (
+                      <option key={sub.id} value={sub.id}>
+                        {catPrefix}{sub.name}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
-              <select
-                value={classification?.subcategory_id || ''}
-                onChange={e => handleClassificationOverride(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
-              >
-                <option value="" disabled>-- Select manual category override --</option>
-                {config.subcategories.map(sub => {
-                  const cat = config.categories.find(c => c.id === sub.category_id);
-                  const catPrefix = cat ? `${cat.name} — ` : '';
-                  return (
-                    <option key={sub.id} value={sub.id}>
-                      {catPrefix}{sub.name}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
 
-
-            {/* AI Summary textarea */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Incident Summary</label>
-                {summaryGenerated && (
-                  <button 
-                    onClick={() => setEditingSummary(!editingSummary)}
-                    className="text-xs text-[#328CC1] hover:underline flex items-center gap-1 font-semibold"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                    {editingSummary ? 'Done' : 'Edit'}
-                  </button>
-                )}
-              </div>
-              {editingSummary ? (
-                <textarea
-                  value={editedSummaryText}
-                  onChange={e => {
-                    setEditedSummaryText(e.target.value);
-                    setSummary(e.target.value);
-                  }}
-                  rows={4}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
-                />
-              ) : (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-600 leading-relaxed min-h-[70px]">
-                  {summary || (
-                    <span className="text-gray-400 italic">No summary generated. Fill in the chat inputs to compile your incident.</span>
+              {/* AI Summary textarea */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Incident Summary</label>
+                  {summaryGenerated && (
+                    <button 
+                      onClick={() => setEditingSummary(!editingSummary)}
+                      className="text-xs text-[#328CC1] hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                      {editingSummary ? 'Done' : 'Edit'}
+                    </button>
                   )}
                 </div>
-              )}
-            </div>
-
-            {/* Timeline Editor */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Timeline Entries</label>
-                {summaryGenerated && (
-                  <button 
-                    onClick={handleAddTimelineRow}
-                    className="text-xs text-[#328CC1] hover:underline flex items-center gap-1 font-semibold"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    Add Entry
-                  </button>
+                {editingSummary ? (
+                  <textarea
+                    value={editedSummaryText}
+                    onChange={e => {
+                      setEditedSummaryText(e.target.value);
+                      setSummary(e.target.value);
+                    }}
+                    rows={4}
+                    className="w-full p-3 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-[#0B3C5D]"
+                  />
+                ) : (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs text-gray-600 leading-relaxed min-h-[70px]">
+                    {summary || (
+                      <span className="text-gray-400 italic">No summary generated. Fill in the chat inputs to compile your incident.</span>
+                    )}
+                  </div>
                 )}
               </div>
-              
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold">
-                      <th className="p-2.5 w-[30%]">Date/Time</th>
-                      <th className="p-2.5 w-[60%]">Event Details</th>
-                      <th className="p-2.5 w-[10%] text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {timeline.length > 0 ? (
-                      timeline.map((item, idx) => (
-                        <tr key={idx} className="border-b border-gray-150 hover:bg-gray-50/50">
-                          <td className="p-1">
-                            <input 
-                              type="text" 
-                              value={item.time} 
-                              onChange={e => handleTimelineChange(idx, 'time', e.target.value)}
-                              className="w-full px-2 py-1 bg-transparent hover:bg-gray-100 focus:bg-white focus:outline-none rounded text-xs font-semibold text-gray-700"
-                            />
-                          </td>
-                          <td className="p-1">
-                            <input 
-                              type="text" 
-                              value={item.event} 
-                              onChange={e => handleTimelineChange(idx, 'event', e.target.value)}
-                              className="w-full px-2 py-1 bg-transparent hover:bg-gray-100 focus:bg-white focus:outline-none rounded text-xs text-gray-600"
-                            />
-                          </td>
-                          <td className="p-1 text-center">
-                            <button 
-                              onClick={() => handleRemoveTimelineRow(idx)}
-                              className="p-1 text-red-500 hover:bg-red-50 rounded"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="3" className="p-4 text-center text-gray-400 italic">No timeline entries generated yet.</td>
+
+              {/* Timeline Editor */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Timeline Entries</label>
+                  {summaryGenerated && (
+                    <button 
+                      onClick={handleAddTimelineRow}
+                      className="text-xs text-[#328CC1] hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Entry
+                    </button>
+                  )}
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold">
+                        <th className="p-2.5 w-[30%]">Date/Time</th>
+                        <th className="p-2.5 w-[60%]">Event Details</th>
+                        <th className="p-2.5 w-[10%] text-center">Action</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {timeline.length > 0 ? (
+                        timeline.map((item, idx) => (
+                          <tr key={idx} className="border-b border-gray-150 hover:bg-gray-50/50">
+                            <td className="p-1">
+                              <input 
+                                type="text" 
+                                value={item.time} 
+                                onChange={e => handleTimelineChange(idx, 'time', e.target.value)}
+                                className="w-full px-2 py-1 bg-transparent hover:bg-gray-100 focus:bg-white focus:outline-none rounded text-xs font-semibold text-gray-700"
+                              />
+                            </td>
+                            <td className="p-1">
+                              <input 
+                                type="text" 
+                                value={item.event} 
+                                onChange={e => handleTimelineChange(idx, 'event', e.target.value)}
+                                className="w-full px-2 py-1 bg-transparent hover:bg-gray-100 focus:bg-white focus:outline-none rounded text-xs text-gray-600"
+                              />
+                            </td>
+                            <td className="p-1 text-center">
+                              <button 
+                                onClick={() => handleRemoveTimelineRow(idx)}
+                                className="p-1 text-red-500 hover:bg-red-50 rounded"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="p-4 text-center text-gray-400 italic">No timeline entries generated yet.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+
             </div>
 
 
