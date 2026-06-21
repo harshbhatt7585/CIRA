@@ -2,7 +2,7 @@
 
 A Streamlit application that helps cybercrime victims in India get immediate guidance and map their incident to the correct category on the [National Cyber Crime Reporting Portal](https://cybercrime.gov.in).
 
-## Quick Start
+## Quick Start (with `uv`)
 
 Using `uv`:
 
@@ -25,6 +25,16 @@ Run the API server:
 ```bash
 uv run uvicorn server:app --reload
 ```
+
+Run the React frontend:
+
+```bash
+cd client
+npm install
+npm run dev -- --port 8501 --host
+```
+
+The backend API runs on `http://localhost:8000`. The React user interface runs on `http://localhost:8501`.
 
 Traditional `venv` setup:
 

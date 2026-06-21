@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import re
@@ -42,6 +43,10 @@ AZURE_OPENAI_ENDPOINT = os.getenv(
 AZURE_OPENAI_DEPLOYMENT = os.getenv(
     "AZURE_OPENAI_DEPLOYMENT",
     os.getenv("AZURE_OPENAI_MODEL", DEFAULT_AZURE_OPENAI_DEPLOYMENT),
+)
+AZURE_OPENAI_TRANSCRIPTION_DEPLOYMENT = os.getenv(
+    "AZURE_OPENAI_TRANSCRIPTION_DEPLOYMENT",
+    os.getenv("AZURE_OPENAI_WHISPER_DEPLOYMENT", "whisper"),
 )
 AZURE_OPENAI_MAX_COMPLETION_TOKENS = int(
     os.getenv("AZURE_OPENAI_MAX_COMPLETION_TOKENS", "16384")
@@ -96,6 +101,7 @@ def get_config_status() -> dict[str, Any]:
         **key_status,
         "endpoint": AZURE_OPENAI_ENDPOINT,
         "deployment": AZURE_OPENAI_DEPLOYMENT,
+        "transcription_deployment": AZURE_OPENAI_TRANSCRIPTION_DEPLOYMENT,
         "api_version": AZURE_OPENAI_API_VERSION,
     }
 
@@ -221,3 +227,31 @@ def call_azure_openai_json(prompt: str, *, temperature: float = 0.2) -> dict[str
         temperature=temperature,
     )
     return extract_json(content)
+
+
+def transcribe_audio(
+    audio_bytes: bytes,
+    *,
+    filename: str = "incident_audio.wav",
+    model: str = AZURE_OPENAI_TRANSCRIPTION_DEPLOYMENT,
+) -> str:
+    """Transcribe uploaded audio bytes with an Azure OpenAI audio deployment."""
+    if not audio_bytes:
+        raise ValueError("No audio data received for transcription.")
+
+    audio_file = io.BytesIO(audio_bytes)
+    audio_file.name = filename or "incident_audio.wav"
+
+    client = _create_client()
+    response = client.audio.transcriptions.create(
+        file=audio_file,
+        model=model,
+    )
+
+    transcript = getattr(response, "text", None)
+    if transcript is None and isinstance(response, dict):
+        transcript = response.get("text")
+    if not isinstance(transcript, str) or not transcript.strip():
+        raise RuntimeError(f"Unexpected transcription response: {response}")
+
+    return transcript.strip()
