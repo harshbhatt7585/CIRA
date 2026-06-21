@@ -1343,19 +1343,62 @@ def main():
         }
         .block-container > div { width: 100%; }
         .cira-heading {
-            margin: 0 0 2.5rem !important;
+            margin: 0 0 0.75rem !important;
             color: #202123 !important;
             font: 600 clamp(2.5rem, 7vw, 4.5rem)/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
             letter-spacing: -0.075em !important;
             text-align: center;
             animation: cira-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
+        /* Compact header once a conversation is underway */
+        .cira-heading.is-compact {
+            font-size: clamp(1.6rem, 3.5vw, 2.1rem) !important;
+            margin: 0 0 1.5rem !important;
+        }
+        .cira-tagline {
+            margin: 0 auto 2.5rem !important;
+            max-width: 560px;
+            text-align: center;
+            color: #6B6C7B !important;
+            font: 400 clamp(0.95rem, 2vw, 1.1rem)/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            letter-spacing: -0.01em;
+            animation: cira-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+        }
         @keyframes cira-enter {
             from { opacity: 0; transform: translateY(18px); letter-spacing: -0.02em; }
             to { opacity: 1; transform: translateY(0); letter-spacing: -0.075em; }
         }
         @media (prefers-reduced-motion: reduce) {
-            .cira-heading { animation: none; }
+            .cira-heading, .cira-tagline { animation: none; }
+        }
+        /* Starter suggestion chips */
+        div.st-key-suggestion_chips_container {
+            max-width: 720px;
+            margin: 0 auto 1rem;
+            animation: cira-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both;
+        }
+        div.st-key-suggestion_chips_container button {
+            width: 100%;
+            min-height: 100%;
+            text-align: left !important;
+            white-space: normal !important;
+            padding: 0.85rem 1rem !important;
+            border: 1px solid #E1E3E8 !important;
+            border-radius: 14px !important;
+            background: #FFFFFF !important;
+            color: #343541 !important;
+            font: 450 0.9rem/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease !important;
+        }
+        div.st-key-suggestion_chips_container button:hover {
+            border-color: #10A37F !important;
+            background: #F7FCFA !important;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 16px rgba(16, 163, 127, 0.12) !important;
+        }
+        div.st-key-suggestion_chips_container button p {
+            text-align: left !important;
         }
         .call-1930 {
             position: fixed;
@@ -1384,31 +1427,6 @@ def main():
         }
         .call-1930:focus-visible { outline: 3px solid rgba(239, 68, 68, 0.28); outline-offset: 3px; }
         .call-1930 svg { width: 1rem; height: 1rem; fill: currentColor; }
-        div[data-element-id="playbooks_toggle_container"] {
-            position: fixed;
-            top: 4.75rem;
-            left: 1.25rem;
-            z-index: 10;
-            width: 9rem;
-        }
-        div[data-element-id="playbooks_toggle_container"] button {
-            width: 100%;
-            min-height: 2.5rem;
-            border: 1px solid #E1E3E8 !important;
-            border-radius: 999px !important;
-            background: #FFFFFF !important;
-            color: #343541 !important;
-            font: 650 0.84rem/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease !important;
-        }
-        div[data-element-id="playbooks_toggle_container"] button:hover {
-            border-color: #B8BCC6 !important;
-            background: #F8F8FA !important;
-            color: #202123 !important;
-            transform: translateY(-1px);
-            box-shadow: 0 7px 16px rgba(0, 0, 0, 0.10) !important;
-        }
         div[role="dialog"] { border-radius: 20px !important; }
         .playbook-count { margin: 0.5rem 0 0 !important; color: #6B7280; font-size: 0.88rem; }
         .playbook-intro { color: #4B5563; line-height: 1.55; margin: 0.5rem 0 1.5rem !important; }
@@ -1417,12 +1435,32 @@ def main():
             font: 650 1rem/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
             margin: 1.5rem 0 0.6rem !important;
         }
-        div[data-element-id="active_playbook_container"] {
+        div.st-key-active_playbook_container {
             min-height: 330px;
+            max-height: calc(100vh - 14rem);
+            overflow-y: auto;
+            overflow-x: hidden;
             padding: 1.4rem;
-            border: 1px solid #3F3F46;
+            border: 1px solid #E5E7EB;
             border-radius: 18px;
-            background: #202123;
+            background: #FAFAFA;
+            /* keep the kicker/title visible while content scrolls under it */
+            scroll-behavior: smooth;
+            overscroll-behavior: contain;
+        }
+        div.st-key-active_playbook_container::-webkit-scrollbar {
+            width: 8px;
+        }
+        div.st-key-active_playbook_container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        div.st-key-active_playbook_container::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 999px;
+            border: 2px solid #FAFAFA;
+        }
+        div.st-key-active_playbook_container::-webkit-scrollbar-thumb:hover {
+            background: #10A37F;
         }
         .active-playbook-kicker {
             margin: 0 0 0.55rem !important;
@@ -1433,57 +1471,147 @@ def main():
         }
         .active-playbook-title {
             margin: 0 !important;
-            color: #FFFFFF !important;
+            color: #202123 !important;
             font: 650 1.2rem/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
             letter-spacing: -0.025em;
         }
-        .active-playbook-copy { margin: 0.55rem 0 1.25rem !important; color: #D1D5DB; font-size: 0.84rem; line-height: 1.45; }
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] {
-            border: 1px solid #45454F !important;
+        .active-playbook-copy { margin: 0.55rem 0 1.25rem !important; color: #4B5563; font-size: 0.84rem; line-height: 1.45; }
+        div.st-key-active_playbook_container [data-testid="stExpander"] {
+            border: 1px solid #E5E7EB !important;
             border-radius: 10px !important;
-            background: #2A2B32 !important;
+            background: #FFFFFF !important;
         }
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] summary,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] summary * {
-            color: #FFFFFF !important;
+        div.st-key-active_playbook_container [data-testid="stExpander"] summary,
+        div.st-key-active_playbook_container [data-testid="stExpander"] summary * {
+            color: #202123 !important;
         }
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] p,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] li,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] td,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] blockquote {
-            color: #E5E7EB !important;
+        div.st-key-active_playbook_container [data-testid="stExpander"] p,
+        div.st-key-active_playbook_container [data-testid="stExpander"] li,
+        div.st-key-active_playbook_container [data-testid="stExpander"] td,
+        div.st-key-active_playbook_container [data-testid="stExpander"] blockquote {
+            color: #202123 !important;
         }
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] h1,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] h2,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] h3,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] h4,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] strong,
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] th {
-            color: #FFFFFF !important;
+        div.st-key-active_playbook_container [data-testid="stExpander"] h1,
+        div.st-key-active_playbook_container [data-testid="stExpander"] h2,
+        div.st-key-active_playbook_container [data-testid="stExpander"] h3,
+        div.st-key-active_playbook_container [data-testid="stExpander"] h4,
+        div.st-key-active_playbook_container [data-testid="stExpander"] strong,
+        div.st-key-active_playbook_container [data-testid="stExpander"] th {
+            color: #111827 !important;
         }
-        div[data-element-id="active_playbook_container"] [data-testid="stExpander"] a { color: #7DD3FC !important; }
+        div.st-key-active_playbook_container [data-testid="stExpander"] a { color: #0E7490 !important; }
+        /* Streamlit may portal expanded content outside the keyed container. */
+        [data-testid="stExpander"] p,
+        [data-testid="stExpander"] li,
+        [data-testid="stExpander"] td,
+        [data-testid="stExpander"] blockquote { color: #202123 !important; }
+        [data-testid="stExpander"] h1,
+        [data-testid="stExpander"] h2,
+        [data-testid="stExpander"] h3,
+        [data-testid="stExpander"] h4,
+        [data-testid="stExpander"] strong,
+        [data-testid="stExpander"] th,
+        [data-testid="stExpander"] summary,
+        [data-testid="stExpander"] summary * { color: #111827 !important; }
+        [data-testid="stExpander"] a { color: #0E7490 !important; }
+        [data-testid="stChatMessageContent"],
+        [data-testid="stChatMessageContent"] p,
+        [data-testid="stChatMessageContent"] li,
+        [data-testid="stChatMessageContent"] blockquote {
+            color: #202123 !important;
+        }
+        [data-testid="stChatMessageContent"] h1,
+        [data-testid="stChatMessageContent"] h2,
+        [data-testid="stChatMessageContent"] h3,
+        [data-testid="stChatMessageContent"] h4,
+        [data-testid="stChatMessageContent"] strong {
+            color: #111827 !important;
+        }
+        [data-testid="stChatMessageContent"] a { color: #0E7490 !important; }
+        /* ── Bottom docked input bar ─────────────────────────── */
+        /* Solid surface so scrolled content never bleeds through the input. */
+        [data-testid="stBottom"] {
+            background: #FFFFFF !important;
+            border-top: 1px solid #ECECF1 !important;
+            box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.04) !important;
+        }
+        [data-testid="stBottom"] > div {
+            background: #FFFFFF !important;
+            padding-bottom: 0.75rem !important;
+        }
+        [data-testid="stBottomBlockContainer"] {
+            max-width: 800px !important;
+            margin: 0 auto !important;
+            padding: 0.75rem 1rem 0 !important;
+            background: #FFFFFF !important;
+        }
+        /* The rounded input shell */
         [data-testid="stChatInput"] {
+            position: relative !important;
             max-width: 800px;
             margin: 0 auto;
+            display: flex !important;
+            align-items: flex-end !important;
             border: 1px solid #D9D9E3 !important;
-            border-radius: 20px !important;
+            border-radius: 24px !important;
             background: #FFFFFF !important;
+            overflow: hidden !important;
             box-shadow: 0 2px 7px rgba(0, 0, 0, 0.08), 0 12px 28px rgba(0, 0, 0, 0.05) !important;
+            transition: border-color 160ms ease, box-shadow 160ms ease;
+        }
+        /* Kill the inner element's own border/background so only the shell shows */
+        [data-testid="stChatInput"] > div,
+        [data-testid="stChatInput"] [data-baseweb="textarea"],
+        [data-testid="stChatInput"] [data-baseweb="base-input"] {
+            border: none !important;
+            background: transparent !important;
+            box-shadow: none !important;
         }
         [data-testid="stChatInput"] textarea {
-            min-height: 58px !important;
-            padding: 1.1rem 1.25rem !important;
-            background: #FFFFFF !important;
+            min-height: 56px !important;
+            max-height: 200px !important;
+            /* leave room for the send button on the right */
+            padding: 1rem 3.25rem 1rem 1.25rem !important;
+            background: transparent !important;
             color: #1F2937 !important;
             caret-color: #10A37F !important;
-            font: 400 1rem/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+            font: 400 1rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
             resize: none !important;
-            transition: border-color 160ms ease, box-shadow 160ms ease;
         }
         [data-testid="stChatInput"] textarea::placeholder { color: #8E8EA0 !important; opacity: 1; }
         [data-testid="stChatInput"]:focus-within {
             border-color: #10A37F !important;
             box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.14), 0 3px 10px rgba(0, 0, 0, 0.10) !important;
+        }
+        /* ── Send button ─────────────────────────────────────── */
+        [data-testid="stChatInputSubmitButton"] {
+            position: absolute;
+            right: 0.6rem;
+            bottom: 0.6rem;
+            width: 2.25rem !important;
+            height: 2.25rem !important;
+            border-radius: 50% !important;
+            background: #10A37F !important;
+            color: #FFFFFF !important;
+            border: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: background 160ms ease, transform 160ms ease, opacity 160ms ease;
+        }
+        [data-testid="stChatInputSubmitButton"]:hover:not(:disabled) {
+            background: #0E8E6E !important;
+            transform: scale(1.05);
+        }
+        [data-testid="stChatInputSubmitButton"]:disabled {
+            background: #E1E3E8 !important;
+            color: #FFFFFF !important;
+            opacity: 1 !important;
+        }
+        [data-testid="stChatInputSubmitButton"] svg {
+            width: 1.1rem !important;
+            height: 1.1rem !important;
+            fill: currentColor !important;
         }
         </style>
         """,
@@ -1497,10 +1625,6 @@ def main():
         </a>''',
         unsafe_allow_html=True,
     )
-    with st.container(key="playbooks_toggle_container"):
-        if st.button("Playbooks", key="open_playbooks"):
-            st.session_state.show_playbooks = True
-
     if st.session_state.get("show_playbooks", False):
         render_playbook_library()
 
@@ -1508,7 +1632,39 @@ def main():
     st.session_state.setdefault("active_classification", None)
     st.session_state.setdefault("active_playbook", None)
 
-    st.markdown('<h1 class="cira-heading">CIRA</h1>', unsafe_allow_html=True)
+    has_conversation = bool(st.session_state.chat_messages)
+
+    # Adaptive header: a welcoming hero before the first message,
+    # a compact title once the conversation is underway.
+    heading_class = "cira-heading is-compact" if has_conversation else "cira-heading"
+    st.markdown(f'<h1 class="{heading_class}">CIRA</h1>', unsafe_allow_html=True)
+
+    if not has_conversation:
+        st.markdown(
+            '<p class="cira-tagline">Your Cyber Incident Response Assistant. '
+            'Describe what happened and I\'ll classify the incident, open the right '
+            'response playbook, and guide your first steps.</p>',
+            unsafe_allow_html=True,
+        )
+
+        # Starter suggestions to lower the cold-start friction.
+        suggestions = [
+            ("💸  UPI / payment fraud", "I lost money through a fraudulent UPI payment."),
+            ("📧  Phishing message", "I received a phishing email asking for my bank details."),
+            ("🔓  Hacked account", "My social media account has been hacked and I'm locked out."),
+            ("🚨  Blackmail / sextortion", "Someone is threatening to leak my private photos unless I pay."),
+        ]
+        pending = None
+        with st.container(key="suggestion_chips_container"):
+            chip_cols = st.columns(2, gap="small")
+            for idx, (label, prompt) in enumerate(suggestions):
+                if chip_cols[idx % 2].button(label, key=f"suggestion_{idx}"):
+                    pending = prompt
+        if pending:
+            with st.spinner("Classifying incident and loading response guide…"):
+                classify_chat_message(pending)
+            st.rerun()
+
     chat_col, playbook_col = st.columns([1.65, 1], gap="large")
     with chat_col:
         for chat_message in st.session_state.chat_messages:
