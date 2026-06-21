@@ -1260,6 +1260,33 @@ def main():
         @media (prefers-reduced-motion: reduce) {
             .cira-heading { animation: none; }
         }
+        .call-1930 {
+            position: fixed;
+            top: 1.25rem;
+            left: 1.25rem;
+            z-index: 10;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.7rem 1rem;
+            border: 1px solid #B91C1C;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #EF4444, #B91C1C);
+            color: #FFFFFF !important;
+            font: 700 0.88rem/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            letter-spacing: -0.01em;
+            text-decoration: none !important;
+            box-shadow: 0 8px 18px rgba(185, 28, 28, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+            transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+        }
+        .call-1930:hover {
+            background: linear-gradient(135deg, #F05252, #DC2626);
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 22px rgba(185, 28, 28, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+        .call-1930:focus-visible { outline: 3px solid rgba(239, 68, 68, 0.28); outline-offset: 3px; }
+        .call-1930 svg { width: 1rem; height: 1rem; fill: currentColor; }
         [data-testid="stTextArea"] { width: 100%; }
         [data-testid="stTextArea"] label { display: none !important; }
         [data-testid="stTextArea"] textarea {
@@ -1285,6 +1312,13 @@ def main():
         unsafe_allow_html=True,
     )
 
+    st.markdown(
+        '''<a class="call-1930" href="tel:1930" aria-label="Call cyber fraud helpline 1930">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79a15.46 15.46 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.31.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z"/></svg>
+            <span>Call 1930</span>
+        </a>''',
+        unsafe_allow_html=True,
+    )
     st.markdown('<h1 class="cira-heading">CIRA</h1>', unsafe_allow_html=True)
     st.text_area(
         "Prompt",
