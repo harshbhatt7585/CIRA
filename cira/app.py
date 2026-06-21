@@ -1245,6 +1245,21 @@ def main():
             align-items: center;
         }
         .block-container > div { width: 100%; }
+        .cira-heading {
+            margin: 0 0 1.25rem !important;
+            color: #202123 !important;
+            font: 600 clamp(2.5rem, 7vw, 4.5rem)/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+            letter-spacing: -0.075em !important;
+            text-align: center;
+            animation: cira-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes cira-enter {
+            from { opacity: 0; transform: translateY(18px); letter-spacing: -0.02em; }
+            to { opacity: 1; transform: translateY(0); letter-spacing: -0.075em; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cira-heading { animation: none; }
+        }
         [data-testid="stTextArea"] { width: 100%; }
         [data-testid="stTextArea"] label { display: none !important; }
         [data-testid="stTextArea"] textarea {
@@ -1270,6 +1285,7 @@ def main():
         unsafe_allow_html=True,
     )
 
+    st.markdown('<h1 class="cira-heading">CIRA</h1>', unsafe_allow_html=True)
     st.text_area(
         "Prompt",
         key="prompt",
