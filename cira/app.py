@@ -1520,6 +1520,24 @@ def main():
             color: #111827 !important;
         }
         [data-testid="stChatMessageContent"] a { color: #0E7490 !important; }
+        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stChatMessageContent"],
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+            padding: 0.85rem 1rem !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 16px !important;
+            background: #F3F4F6 !important;
+        }
+        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]),
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+            border: 1px solid #E5E7EB !important;
+            border-radius: 18px !important;
+            background: #F3F4F6 !important;
+            box-shadow: none !important;
+        }
+        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stChatMessageContent"] > div,
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] > div {
+            background: transparent !important;
+        }
         /* ── Bottom docked input — free & elegant (no card) ──── */
         /* Transparent bar with a soft fade so messages dissolve behind it. */
         [data-testid="stBottom"] {
@@ -1631,6 +1649,53 @@ def main():
     st.session_state.setdefault("active_playbook", None)
 
     has_conversation = bool(st.session_state.chat_messages)
+
+    # Composer motion: float the input in the vertical middle on first load so
+    # it's the obvious focal point, then glide it down to the bottom the moment
+    # the conversation starts (one-time animation, tracked via a session flag).
+    docked_before = st.session_state.get("input_docked", False)
+    if has_conversation:
+        st.session_state["input_docked"] = True
+
+    if not has_conversation:
+        st.markdown(
+            """
+            <style>
+            [data-testid="stBottom"] {
+                transform: translateY(-40vh);
+                animation: cira-input-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                will-change: transform;
+            }
+            @keyframes cira-input-enter {
+                from { transform: translateY(calc(-40vh + 18px)); opacity: 0; }
+                to   { transform: translateY(-40vh); opacity: 1; }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                [data-testid="stBottom"] { animation: none; }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+    elif not docked_before:
+        st.markdown(
+            """
+            <style>
+            [data-testid="stBottom"] {
+                animation: cira-input-dock 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+                will-change: transform;
+            }
+            @keyframes cira-input-dock {
+                from { transform: translateY(-40vh); }
+                to   { transform: translateY(0); }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                [data-testid="stBottom"] { animation: none; }
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
 
     # Adaptive header: a welcoming hero before the first message,
     # a compact title once the conversation is underway.
