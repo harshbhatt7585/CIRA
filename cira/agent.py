@@ -59,8 +59,10 @@ def call_agent(
                 "content": (
                     "Internal verifier feedback. Use this to produce the next "
                     "user-facing Investigation Officer reply. Do not mention the "
-                    "verifier, scores, or internal policy. Ask exactly one short "
-                    "question for the missing evidence, gently and specifically.\n\n"
+                    "verifier, scores, or internal policy. Give exactly one short "
+                    "action or ask exactly one short question, gently and "
+                    "specifically. Do not repeat the same yes/no question if the "
+                    "user already answered it.\n\n"
                     f"{json.dumps(verifier_feedback, ensure_ascii=False, indent=2)}"
                 ),
             }
@@ -131,8 +133,8 @@ def call_verifier(
     feedback = parsed.get("feedback_to_investigator", "")
     if not isinstance(feedback, str) or not feedback.strip():
         feedback = (
-            "Ask exactly one focused question for the highest-priority missing "
-            "evidence required by the matched category in EVALUATION.md."
+            "Give exactly one focused action or question for the highest-priority "
+            "missing evidence required by the matched category in EVALUATION.md."
         )
 
     return {
