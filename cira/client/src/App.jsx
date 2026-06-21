@@ -23,7 +23,9 @@ import {
   Lock,
   Edit2,
   Trash2,
-  CheckCircle2
+  CheckCircle2,
+  Mic,
+  Square
 } from 'lucide-react';
 
 const API_BASE = `http://${window.location.hostname}:8000`;
@@ -69,6 +71,12 @@ export default function App() {
   const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [editingSummary, setEditingSummary] = useState(false);
   const [editedSummaryText, setEditedSummaryText] = useState('');
+
+  // Speech Recording States & Refs
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   // Refs for auto-scroll
   const messagesEndRef = useRef(null);
@@ -140,6 +148,77 @@ export default function App() {
     setSummaryGenerated(false);
     setPlaybook(null);
     setExpandedPlaybookSections({});
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunksRef.current = [];
+      
+      let recorder;
+      if (MediaRecorder.isTypeSupported('audio/webm')) {
+        recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+        recorder = new MediaRecorder(stream, { mimeType: 'audio/mp4' });
+      } else {
+        recorder = new MediaRecorder(stream);
+      }
+      
+      mediaRecorderRef.current = recorder;
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
+        stream.getTracks().forEach(track => track.stop());
+        await uploadAudio(audioBlob);
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      alert("Could not access microphone. Please check permissions.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const uploadAudio = async (blob) => {
+    setIsTranscribing(true);
+    try {
+      const formData = new FormData();
+      const extension = blob.type.includes('mp4') ? 'm4a' : 'webm';
+      formData.append('file', blob, `audio.${extension}`);
+
+      const response = await fetch(`${API_BASE}/api/transcribe`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Transcription failed');
+      }
+
+      const data = await response.json();
+      if (data.text) {
+        setUserInput(prev => prev ? `${prev} ${data.text.trim()}` : data.text.trim());
+      }
+    } catch (err) {
+      console.error("Error transcribing audio:", err);
+      alert("Error transcribing audio. Please try again.");
+    } finally {
+      setIsTranscribing(false);
+    }
   };
 
   const handleSendMessage = async (textToSend) => {
@@ -742,13 +821,43 @@ export default function App() {
                   value={userInput}
                   onChange={e => setUserInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSendMessage(userInput)}
-                  disabled={isChatLoading}
-                  placeholder={stage === 'stage_4_evidence' ? "Evidence checklist open below. You can still message..." : "Tell me what happened — I'm here to help..."}
+                  disabled={isChatLoading || isRecording || isTranscribing}
+                  placeholder={
+                    isRecording 
+                      ? "Recording audio... speak clearly." 
+                      : isTranscribing 
+                        ? "Transcribing voice via Groq Whisper..." 
+                        : stage === 'stage_4_evidence' 
+                          ? "Evidence checklist open below. You can still message..." 
+                          : "Tell me what happened — I'm here to help..."
+                  }
                   className="flex-1 bg-transparent border-none outline-none text-xs text-gray-700 placeholder-gray-400 py-1"
                 />
+
+                {/* Voice Input Button */}
+                <button
+                  type="button"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isChatLoading || isTranscribing}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all shadow-sm mr-2 ${
+                    isRecording 
+                      ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
+                  }`}
+                  title={isRecording ? "Stop recording" : "Record voice input"}
+                >
+                  {isTranscribing ? (
+                    <div className="w-3.5 h-3.5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
+                  ) : isRecording ? (
+                    <Square className="w-3.5 h-3.5 fill-current" />
+                  ) : (
+                    <Mic className="w-3.5 h-3.5" />
+                  )}
+                </button>
+
                 <button 
                   onClick={() => handleSendMessage(userInput)}
-                  disabled={isChatLoading || !userInput.trim()}
+                  disabled={isChatLoading || isRecording || isTranscribing || !userInput.trim()}
                   className="w-8 h-8 rounded-full bg-[#328CC1] hover:bg-[#0B3C5D] text-white flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40 shadow-sm"
                 >
                   <Send className="w-3.5 h-3.5 fill-current translate-x-[0.5px]" />
