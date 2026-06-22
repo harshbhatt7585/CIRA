@@ -1280,9 +1280,10 @@ def initialise_investigation_agent() -> None:
     st.session_state.verifier_prompt = load_verifier_prompt(evaluation_matrix)
 
 
-def run_investigation_turn(message: str) -> None:
+def run_investigation_turn(message: str, *, user_message_already_rendered: bool = False) -> None:
     """Run one full Investigation Officer and Evidence Verifier turn from agent.py."""
-    st.session_state.chat_messages.append({"role": "user", "content": message})
+    if not user_message_already_rendered:
+        st.session_state.chat_messages.append({"role": "user", "content": message})
     initialise_investigation_agent()
 
     # Classification is separate by design: agent.py investigates the case,
@@ -1790,6 +1791,7 @@ def main():
     st.session_state.setdefault("active_playbook", None)
 
     has_conversation = bool(st.session_state.chat_messages)
+    pending_agent_message = st.session_state.get("pending_agent_message")
 
     # Composer motion: float the input in the vertical middle on first load so
     # it's the obvious focal point, then glide it down to the bottom the moment
@@ -1838,6 +1840,25 @@ def main():
             unsafe_allow_html=True,
         )
 
+    # Keep the composer in one predictable place. This rule intentionally comes
+    # after the optional entry-animation styles above so it wins on every rerun.
+    st.markdown(
+        """
+        <style>
+        [data-testid="stBottom"] {
+            position: fixed !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            z-index: 20 !important;
+            transform: none !important;
+            animation: none !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     # Adaptive header: a welcoming hero before the first message,
     # a compact title once the conversation is underway.
     heading_class = "cira-heading is-compact" if has_conversation else "cira-heading"
@@ -1882,14 +1903,34 @@ def main():
         for chat_message in st.session_state.chat_messages:
             with st.chat_message(chat_message["role"]):
                 st.markdown(chat_message["content"])
+        if pending_agent_message:
+            with st.chat_message("assistant"):
+                st.markdown(
+                    '<span style="color:#6B7280; font-size:0.92rem;">'
+                    'Waiting for response<span style="animation:pulse 1.2s infinite;">…</span>'
+                    '</span>',
+                    unsafe_allow_html=True,
+                )
     if playbook_col is not None:
         with playbook_col:
             render_active_playbook()
 
+    # A submitted user message is rendered in the previous step before the
+    # network-bound agent call starts. This keeps the conversation responsive
+    # instead of making the user wait for the assistant response to see it.
+    if pending_agent_message:
+        with st.spinner("Investigation Officer is reviewing your case…"):
+            run_investigation_turn(
+                pending_agent_message,
+                user_message_already_rendered=True,
+            )
+        del st.session_state.pending_agent_message
+        st.rerun()
+
     user_message = st.chat_input("Message CIRA…")
     if user_message:
-        with st.spinner("Investigation Officer is reviewing your case…"):
-            run_investigation_turn(user_message)
+        st.session_state.chat_messages.append({"role": "user", "content": user_message})
+        st.session_state.pending_agent_message = user_message
         st.rerun()
 
 
