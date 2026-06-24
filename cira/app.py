@@ -1448,20 +1448,30 @@ def main():
         .block-container {
             min-height: 100vh;
             max-width: 1240px !important;
-            padding: 7rem 1.25rem 9rem !important;
+            /* generous bottom padding so the last message clears the docked input */
+            padding: 6rem 2rem 11rem !important;
+            margin: 0 auto;
         }
         .block-container > div { width: 100%; }
         /* Centered, readable conversation column */
         div.st-key-conversation_workspace {
             width: min(100%, 760px);
             margin: 0 auto;
-            padding: 0 1rem 2rem;
+            padding: 0 0.5rem 3rem;
             box-sizing: border-box;
         }
+        /* On wide screens, reserve a left gutter for the floating emergency
+           card so the chat never slides underneath it, and keep the docked
+           input aligned with the same content area. */
         @media (min-width: 1181px) {
-            div.st-key-conversation_workspace {
-                margin-right: 0;
-                margin-left: calc(30% - 260px);
+            .block-container {
+                max-width: none !important;
+                padding-left: 18.5rem !important;
+                padding-right: 3rem !important;
+            }
+            [data-testid="stBottom"] {
+                padding-left: 18.5rem !important;
+                padding-right: 3rem !important;
             }
         }
         /* "Response playbook" launcher button */
