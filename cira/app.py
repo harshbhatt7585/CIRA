@@ -1315,7 +1315,19 @@ def generate_final_report_pdf(final_summary: str) -> bytes | None:
         return None
 
 
-def run_investigation_turn(message: str, *, user_message_already_rendered: bool = False) -> None:
+def is_final_case_summary(reply: str) -> bool:
+    """Recognise the report structure required by agent.md even if verification lags."""
+    normalized = reply.lower()
+    required_sections = ("case summary", "timeline", "immediate next steps")
+    return all(section in normalized for section in required_sections)
+
+
+def run_investigation_turn(
+    message: str,
+    *,
+    user_message_already_rendered: bool = False,
+    replace_waiting_message: bool = False,
+) -> None:
     """Run one full Investigation Officer and Evidence Verifier turn from agent.py."""
     if not user_message_already_rendered:
         st.session_state.chat_messages.append({"role": "user", "content": message})
@@ -1360,16 +1372,21 @@ def run_investigation_turn(message: str, *, user_message_already_rendered: bool 
             agent_output["status"] = "investigating"
 
         agent_messages.append({"role": "assistant", "content": raw_reply})
-        st.session_state.agent_status = agent_output["status"]
         reply = agent_output["reply"]
+        st.session_state.agent_status = agent_output["status"]
     except Exception:
+        st.session_state.agent_status = "investigating"
         reply = (
             "I’m unable to reach the Investigation Officer right now. Please try again "
             "shortly; if money was lost, call 1930 and contact your bank immediately."
         )
 
-    st.session_state.chat_messages.append({"role": "assistant", "content": reply})
-    if st.session_state.get("agent_status") == "complete":
+    if replace_waiting_message and st.session_state.chat_messages[-1].get("pending"):
+        st.session_state.chat_messages[-1] = {"role": "assistant", "content": reply}
+    else:
+        st.session_state.chat_messages.append({"role": "assistant", "content": reply})
+    if st.session_state.get("agent_status") == "complete" or is_final_case_summary(reply):
+        st.session_state.agent_status = "complete"
         st.session_state.final_report_pdf = generate_final_report_pdf(reply)
 
 
@@ -1428,6 +1445,51 @@ def main():
             padding: 7rem 1.25rem 9rem !important;
         }
         .block-container > div { width: 100%; }
+        /* Centered, readable conversation column */
+        div.st-key-conversation_workspace {
+            width: min(100%, 760px);
+            margin: 0 auto;
+            padding: 0 1rem 2rem;
+            box-sizing: border-box;
+        }
+        /* "Response playbook" launcher button */
+        div.st-key-conversation_workspace .stButton > button {
+            width: auto;
+            margin: 0 0 1.25rem;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 999px !important;
+            background: #FFFFFF !important;
+            color: #343541 !important;
+            font: 600 0.85rem/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+            padding: 0.5rem 1rem !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+            transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+        }
+        div.st-key-conversation_workspace .stButton > button:hover {
+            border-color: #10A37F !important;
+            background: #F7FCFA !important;
+            transform: translateY(-1px);
+        }
+        /* Animated "assistant is typing" indicator for the pending bubble */
+        .cira-typing { display: inline-flex; align-items: center; gap: 5px; padding: 2px 0; }
+        .cira-typing span {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #9CA3AF; display: inline-block;
+            animation: cira-typing-bounce 1.2s ease-in-out infinite;
+        }
+        .cira-typing span:nth-child(2) { animation-delay: 0.18s; }
+        .cira-typing span:nth-child(3) { animation-delay: 0.36s; }
+        @keyframes cira-typing-bounce {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+            30% { transform: translateY(-5px); opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cira-typing span { animation: none; opacity: 0.7; }
+        }
+        @media (max-width: 760px) {
+            .block-container { padding-right: 0.75rem !important; padding-left: 0.75rem !important; }
+            div.st-key-conversation_workspace { padding-right: 0; padding-left: 0; }
+        }
         .cira-heading {
             margin: 0 0 0.75rem !important;
             color: #202123 !important;
@@ -1523,9 +1585,12 @@ def main():
         }
         /* Free, card-less playbook surface — scrolls within the viewport. */
         div.st-key-active_playbook_container {
-            min-height: 280px;
-            max-height: none;
-            overflow: visible;
+            position: sticky;
+            top: 5.5rem;
+            min-height: 200px;
+            max-height: calc(100vh - 9rem);
+            overflow-y: auto;
+            overflow-x: hidden;
             padding: 0.25rem 0.75rem 1rem 0.25rem;
             border: none;
             background: transparent;
@@ -1611,23 +1676,48 @@ def main():
             color: #111827 !important;
         }
         [data-testid="stChatMessageContent"] a { color: #0E7490 !important; }
-        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stChatMessageContent"],
-        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
-            padding: 0.85rem 1rem !important;
-            border: 1px solid #E5E7EB !important;
-            border-radius: 16px !important;
-            background: #F3F4F6 !important;
+        /* ── Chat bubbles ───────────────────────────────────── */
+        [data-testid="stChatMessage"] {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0.35rem 0 !important;
+            gap: 0.65rem !important;
         }
+        /* Assistant: clean, left-aligned, no box */
+        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) [data-testid="stChatMessageContent"],
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) [data-testid="stChatMessageContent"] {
+            background: transparent !important;
+            border: none !important;
+            padding: 0.4rem 0 !important;
+        }
+        /* User: compact, right-aligned bubble */
         [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]),
         [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
-            border: 1px solid #E5E7EB !important;
-            border-radius: 18px !important;
-            background: #F3F4F6 !important;
-            box-shadow: none !important;
+            flex-direction: row-reverse !important;
+        }
+        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stChatMessageContent"],
+        [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] {
+            flex: 0 1 auto !important;
+            width: auto !important;
+            max-width: 76% !important;
+            padding: 0.7rem 1rem !important;
+            border: none !important;
+            border-radius: 18px 18px 4px 18px !important;
+            background: #EEF2F7 !important;
         }
         [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stChatMessageContent"] > div,
         [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) [data-testid="stChatMessageContent"] > div {
             background: transparent !important;
+        }
+        /* Slightly smaller, calmer avatars */
+        [data-testid="stChatMessageAvatarUser"],
+        [data-testid="stChatMessageAvatarAssistant"],
+        [data-testid="chatAvatarIcon-user"],
+        [data-testid="chatAvatarIcon-assistant"] {
+            width: 2rem !important;
+            height: 2rem !important;
+            flex-shrink: 0 !important;
         }
         /* ── Bottom docked input — free & elegant (no card) ──── */
         /* Transparent bar with a soft fade so messages dissolve behind it. */
@@ -1740,11 +1830,13 @@ def main():
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
         .ea-card {
-            position: fixed;
-            top: 5.0rem;
-            left: 1.25rem;
+            position: fixed !important;
+            top: 5rem !important;
+            left: 1.25rem !important;
             width: 15.5rem;
-            z-index: 9;
+            z-index: 9999 !important;
+            transform: translateZ(0);
+            will-change: transform;
             font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #FFFFFF;
             border-radius: 18px;
@@ -1832,8 +1924,38 @@ def main():
     st.session_state.setdefault("active_classification", None)
     st.session_state.setdefault("active_playbook", None)
 
+    # Remove placeholders and duplicate adjacent user entries left by the
+    # earlier rerun-based composer flow.
+    cleaned_messages = []
+    for message in st.session_state.chat_messages:
+        if message.get("pending"):
+            continue
+        if (
+            cleaned_messages
+            and message.get("role") == "user"
+            and cleaned_messages[-1].get("role") == "user"
+            and message.get("content") == cleaned_messages[-1].get("content")
+        ):
+            continue
+        cleaned_messages.append(message)
+    st.session_state.chat_messages = cleaned_messages
+    st.session_state.pop("pending_agent_message", None)
+
+    # Support a report-ready response that was rendered before PDF export was
+    # added, or whose verifier status was still investigating at that time.
+    latest_assistant_reply = next(
+        (
+            message["content"]
+            for message in reversed(st.session_state.chat_messages)
+            if message.get("role") == "assistant"
+        ),
+        "",
+    )
+    if is_final_case_summary(latest_assistant_reply) and not st.session_state.get("final_report_pdf"):
+        st.session_state.agent_status = "complete"
+        st.session_state.final_report_pdf = generate_final_report_pdf(latest_assistant_reply)
+
     has_conversation = bool(st.session_state.chat_messages)
-    pending_agent_message = st.session_state.get("pending_agent_message")
 
     # Composer motion: float the input in the vertical middle on first load so
     # it's the obvious focal point, then glide it down to the bottom the moment
@@ -1934,54 +2056,71 @@ def main():
     has_active_playbook = bool(
         st.session_state.active_classification and st.session_state.active_playbook
     )
+
+    # Widen the workspace when the playbook panel is present; keep the chat
+    # comfortably centred when it isn't.
     if has_active_playbook:
-        chat_col, playbook_col = st.columns([1.65, 1], gap="large")
-    else:
-        chat_col = st.container()
-        playbook_col = None
-
-    with chat_col:
-        for chat_message in st.session_state.chat_messages:
-            with st.chat_message(chat_message["role"]):
-                st.markdown(chat_message["content"])
-        if pending_agent_message:
-            with st.chat_message("assistant"):
-                st.markdown(
-                    '<span style="color:#6B7280; font-size:0.92rem;">'
-                    'Waiting for response<span style="animation:pulse 1.2s infinite;">…</span>'
-                    '</span>',
-                    unsafe_allow_html=True,
-                )
-        final_report_pdf = st.session_state.get("final_report_pdf")
-        if st.session_state.get("agent_status") == "complete" and final_report_pdf:
-            st.download_button(
-                "Download final report (PDF)",
-                data=final_report_pdf,
-                file_name="CIRA_case_report.pdf",
-                mime="application/pdf",
-                key="download_final_report_pdf",
-                use_container_width=False,
-            )
-    if playbook_col is not None:
-        with playbook_col:
-            render_active_playbook()
-
-    # A submitted user message is rendered in the previous step before the
-    # network-bound agent call starts. This keeps the conversation responsive
-    # instead of making the user wait for the assistant response to see it.
-    if pending_agent_message:
-        run_investigation_turn(
-            pending_agent_message,
-            user_message_already_rendered=True,
+        st.markdown(
+            "<style>div.st-key-conversation_workspace{width:min(100%,1180px)!important;}</style>",
+            unsafe_allow_html=True,
         )
-        del st.session_state.pending_agent_message
-        st.rerun()
+
+    with st.container(key="conversation_workspace"):
+        if has_active_playbook:
+            chat_col, playbook_col = st.columns([1.55, 1], gap="large")
+        else:
+            chat_col, playbook_col = st.container(), None
+
+        with chat_col:
+            chat_feed = st.container()
+            with chat_feed:
+                for chat_message in st.session_state.chat_messages:
+                    if chat_message.get("pending"):
+                        continue
+                    with st.chat_message(chat_message["role"]):
+                        st.markdown(chat_message["content"])
+
+            final_report_pdf = st.session_state.get("final_report_pdf")
+            if st.session_state.get("agent_status") == "complete" and final_report_pdf:
+                st.download_button(
+                    "Download final report (PDF)",
+                    data=final_report_pdf,
+                    file_name="CIRA_case_report.pdf",
+                    mime="application/pdf",
+                    key="download_final_report_pdf",
+                    use_container_width=False,
+                )
+
+        if playbook_col is not None:
+            with playbook_col:
+                render_active_playbook()
 
     user_message = st.chat_input("Message CIRA…")
     if user_message:
         st.session_state.chat_messages.append({"role": "user", "content": user_message})
-        st.session_state.pending_agent_message = user_message
-        st.rerun()
+        with chat_feed:
+            with st.chat_message("user"):
+                st.markdown(user_message)
+            with st.chat_message("assistant"):
+                response_slot = st.empty()
+                response_slot.markdown(
+                    '<span class="cira-typing" aria-label="Assistant is responding">'
+                    '<span></span><span></span><span></span></span>',
+                    unsafe_allow_html=True,
+                )
+                run_investigation_turn(user_message, user_message_already_rendered=True)
+                response_slot.markdown(st.session_state.chat_messages[-1]["content"])
+                if st.session_state.get("agent_status") == "complete":
+                    final_report_pdf = st.session_state.get("final_report_pdf")
+                    if final_report_pdf:
+                        st.download_button(
+                            "Download final report (PDF)",
+                            data=final_report_pdf,
+                            file_name="CIRA_case_report.pdf",
+                            mime="application/pdf",
+                            key="download_final_report_pdf_inline",
+                            use_container_width=False,
+                        )
 
 
 if __name__ == "__main__":
