@@ -1,13 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Phone, Send, ChevronRight } from 'lucide-react';
-
-// Local dev points at the FastAPI server; production uses Vercel's same-origin
-// FastAPI function (empty base → relative /api/* calls).
-const API_BASE = import.meta.env.VITE_API_BASE ?? (
-  import.meta.env.DEV ? `http://${window.location.hostname}:8000` : ''
-);
+import { loadPlaybook, sendChatMessage } from './api';
 
 const SUGGESTIONS = [
   { label: '💸  UPI / payment fraud', prompt: 'I lost money through a fraudulent UPI payment.' },
@@ -43,6 +38,9 @@ export default function App() {
   const inputRef = useRef(null);
 
   const hasConversation = messages.length > 0;
+  const subcategoryId = classification?.subcategory_id;
+  const activePlaybook =
+    subcategoryId && playbook?.subcategory_id === subcategoryId ? playbook : null;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -50,22 +48,22 @@ export default function App() {
 
   // Load the playbook whenever the classification changes.
   useEffect(() => {
-    if (classification?.subcategory_id) {
-      fetch(`${API_BASE}/api/playbook/${classification.subcategory_id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setPlaybook(data);
-          if (data?.available && data.sections) {
-            const first = Object.keys(data.sections)[0];
-            if (first) setOpenSections({ [first]: true });
-          }
-        })
-        .catch((err) => console.error('Error loading playbook:', err));
-    } else {
-      setPlaybook(null);
-      setOpenSections({});
-    }
-  }, [classification]);
+    if (!subcategoryId) return;
+
+    loadPlaybook(subcategoryId)
+      .then((data) => {
+        setPlaybook(data);
+        if (data?.available && data.sections) {
+          const first = Object.keys(data.sections)[0];
+          setOpenSections(first ? { [first]: true } : {});
+        }
+      })
+      .catch((err) => {
+        console.error('Error loading playbook:', err);
+        setPlaybook(null);
+        setOpenSections({});
+      });
+  }, [subcategoryId]);
 
   const autoGrow = (el) => {
     if (!el) return;
@@ -84,24 +82,17 @@ export default function App() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: priorMessages,
-          stage,
-          classification,
-          followup_answers: followupAnswers,
-          remaining_questions: [],
-          evidence,
-          user_input: trimmed,
-          summary,
-          timeline,
-        }),
+      const data = await sendChatMessage({
+        messages: priorMessages,
+        stage,
+        classification,
+        followup_answers: followupAnswers,
+        remaining_questions: [],
+        evidence,
+        user_input: trimmed,
+        summary,
+        timeline,
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-      const data = await res.json();
       if (data?.messages) {
         setMessages(data.messages);
         setStage(data.stage || 'stage_1_intake');
@@ -193,7 +184,7 @@ export default function App() {
         )}
 
         {hasConversation && (
-          <div className={`cira-workspace${playbook ? '' : ' cira-workspace--single'}`}>
+          <div className={`cira-workspace${activePlaybook ? '' : ' cira-workspace--single'}`}>
             <div className="chat-col">
               {messages.map((msg, i) => {
                 const isAssistant = msg.role === 'assistant';
@@ -228,7 +219,7 @@ export default function App() {
               <div ref={endRef} />
             </div>
 
-            {playbook && (
+            {activePlaybook && (
               <aside className="playbook-col">
                 <p className="pb-kicker">Active playbook</p>
                 <h2 className="pb-title">{classification?.subcategory_name}</h2>
@@ -238,8 +229,8 @@ export default function App() {
                     ` · ${Math.round(classification.match_confidence * 100)}% confidence`}
                 </p>
 
-                {playbook.available && playbook.sections ? (
-                  Object.entries(playbook.sections).map(([title, content]) => {
+                {activePlaybook.available && activePlaybook.sections ? (
+                  Object.entries(activePlaybook.sections).map(([title, content]) => {
                     const isOpen = !!openSections[title];
                     return (
                       <div className="pb-section" key={title}>
@@ -269,7 +260,7 @@ export default function App() {
                   })
                 ) : (
                   <div className="pb-locked">
-                    {playbook.message || 'This playbook is not available yet.'}
+                    {activePlaybook.message || 'This playbook is not available yet.'}
                   </div>
                 )}
               </aside>
