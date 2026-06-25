@@ -24,6 +24,16 @@ from components.complaint_package_exports import (
 )
 from components.evidence_checklist import EVIDENCE_BY_CATEGORY, GENERIC_EVIDENCE
 
+# Same Investigation Officer + Evidence Verifier prompts as the Streamlit app
+# (agent.md / verifier.md), so the API produces the identical structure.
+from agent import (
+    load_evaluation_matrix,
+    load_agent_prompt,
+    load_verifier_prompt,
+    call_agent,
+    call_verifier,
+)
+
 app = FastAPI(title="CFRO API Server")
 
 # Enable CORS for frontend client development
@@ -83,10 +93,24 @@ async def get_playbook(subcategory_id: str):
     """Load playbook for the given subcategory."""
     return load_playbook(subcategory_id)
 
+def _build_agent_messages(history: List[Dict[str, Any]], system_prompt: str) -> List[Dict[str, str]]:
+    """Rebuild the Investigation Officer conversation from the chat history.
+
+    The HTTP API is stateless, so the agent's running conversation is
+    reconstructed each turn from the user-facing messages the client sends.
+    """
+    agent_messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+    for message in history:
+        role = message.get("role")
+        if role in ("user", "assistant"):
+            agent_messages.append({"role": role, "content": message.get("content", "")})
+    return agent_messages
+
+
 @app.post("/api/chat")
 async def chat_handler(req: ChatRequest):
-    """Handle chat message logic and stage transitions via dynamic AI investigation."""
-    messages = list(req.messages)
+    """Run one Investigation Officer + Evidence Verifier turn (agent.md / verifier.md)."""
+    history = list(req.messages)
     stage = req.stage
     classification = req.classification
     followup_answers = dict(req.followup_answers)
@@ -95,51 +119,54 @@ async def chat_handler(req: ChatRequest):
     summary = req.summary or ""
     timeline = list(req.timeline) if req.timeline else []
 
-    # Call dynamic AI Investigator
-    result = investigate_incident(
-        messages=messages,
-        stage=stage,
-        classification=classification,
-        followup_answers=followup_answers,
-        evidence=evidence,
-        timeline=timeline,
-        summary=summary,
-        user_input=user_input,
-    )
+    # Classification is separate by design: the agent investigates the case,
+    # while the official taxonomy decides which Markdown playbook to surface.
+    if not classification:
+        understanding = understand_incident(user_input, get_subcategory_names())
+        if "error" not in understanding:
+            classification = map_to_official_category(understanding)
 
-    if "error" in result:
-        # Fallback in case of error
-        messages.append({"role": "user", "content": user_input, "type": "text"})
-        messages.append({
-            "role": "assistant",
-            "content": f"I experienced an issue processing that: {result['error']}. Let's continue describing the details.",
-            "type": "text"
-        })
-        return {
-            "messages": messages,
-            "stage": stage,
-            "classification": classification,
-            "followup_answers": followup_answers,
-            "remaining_questions": [],
-            "summary": summary,
-            "timeline": timeline,
-            "summary_generated": False,
-        }
+    # Build the agent conversation with the same prompts as the Streamlit app.
+    evaluation_matrix = load_evaluation_matrix()
+    agent_messages = _build_agent_messages(history, load_agent_prompt(evaluation_matrix))
+    verifier_prompt = load_verifier_prompt(evaluation_matrix)
+    agent_messages.append({"role": "user", "content": user_input})
 
-    # Extract dynamic state from AI response
-    stage = result.get("stage", stage)
-    classification = result.get("classification", classification)
-    followup_answers = result.get("followup_answers", followup_answers)
-    timeline = result.get("timeline", timeline)
-    summary = result.get("summary", summary)
-    evidence = result.get("evidence", evidence)
-    summary_generated = result.get("summary_generated", False)
+    agent_status = "investigating"
+    try:
+        agent_output, _ = call_agent(agent_messages)
+        verifier_output, _ = call_verifier(verifier_prompt, agent_messages, agent_output)
 
-    assistant_msg = result.get("assistant_message")
-    if assistant_msg:
-        # Append user input and then assistant message
-        messages.append({"role": "user", "content": user_input, "type": "text"})
-        messages.append(assistant_msg)
+        if verifier_output["status"] == "verified":
+            if agent_output["status"] != "complete":
+                agent_output, _ = call_agent(
+                    agent_messages,
+                    {
+                        **verifier_output,
+                        "feedback_to_investigator": (
+                            "The evidence is verified as report-ready. Produce the final case "
+                            "summary, timeline, available evidence, unknown details, and "
+                            "immediate next steps in a calm, supportive tone."
+                        ),
+                    },
+                )
+                agent_output["status"] = "complete"
+        else:
+            agent_output, _ = call_agent(agent_messages, verifier_output)
+            agent_output["status"] = "investigating"
+
+        reply = agent_output["reply"]
+        agent_status = agent_output["status"]
+    except Exception:
+        reply = (
+            "I’m unable to reach the Investigation Officer right now. Please try again "
+            "shortly; if money was lost, call 1930 and contact your bank immediately."
+        )
+
+    messages = history + [
+        {"role": "user", "content": user_input, "type": "text"},
+        {"role": "assistant", "content": reply, "type": "text"},
+    ]
 
     return {
         "messages": messages,
@@ -149,8 +176,9 @@ async def chat_handler(req: ChatRequest):
         "remaining_questions": [],
         "summary": summary,
         "timeline": timeline,
-        "summary_generated": summary_generated,
-        "evidence": evidence
+        "summary_generated": agent_status == "complete",
+        "evidence": evidence,
+        "agent_status": agent_status,
     }
 
 @app.post("/api/transcribe")
