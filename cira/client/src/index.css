@@ -1,237 +1,373 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @theme {
-  --color-primary: #0B3C5D;
-  --color-primary-hover: #082d47;
-  --color-secondary: #328CC1;
-  --color-secondary-hover: #27709b;
-  --color-appBg: #F0F2F5;
+  --color-primary: #10A37F;
+  --color-primary-hover: #0E8E6E;
+  --color-ink: #202123;
   --color-surface: #FFFFFF;
-  --color-textDark: #1D2731;
-  --color-alertRed: #DC2626;
 }
 
-body {
+* { box-sizing: border-box; }
+
+html, body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: #061321;
-  color: #1D2731;
-  overflow: hidden;
+  padding: 0;
+  background: #FFFFFF;
+  color: #202123;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Glass workspace tokens. The light panels keep administrative content readable
-   while the dark ambient canvas gives the interface depth. */
-.glass-app {
+.cira-root {
   position: relative;
-  isolation: isolate;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(56, 189, 248, 0.28), transparent 28rem),
-    radial-gradient(circle at 92% 15%, rgba(129, 140, 248, 0.23), transparent 25rem),
-    radial-gradient(circle at 58% 100%, rgba(20, 184, 166, 0.18), transparent 31rem),
-    linear-gradient(135deg, #061321 0%, #0a2133 46%, #102838 100%);
+  min-height: 100vh;
+  background: #FFFFFF;
 }
 
-.glass-app::before,
-.glass-app::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
+/* ── Floating helpline button ─────────────────────────────── */
+.call-1930 {
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid #B91C1C;
   border-radius: 999px;
-  filter: blur(2px);
+  background: linear-gradient(135deg, #EF4444, #B91C1C);
+  color: #FFFFFF;
+  font: 700 0.88rem/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+.call-1930:hover {
+  background: linear-gradient(135deg, #F05252, #DC2626);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(185, 28, 28, 0.32);
+}
+.call-1930 svg { width: 1rem; height: 1rem; }
+
+/* ── Emergency & Action card (left, floating, white) ──────── */
+.ea-card {
+  position: fixed;
+  top: 5rem;
+  left: 1.25rem;
+  width: 15.5rem;
+  z-index: 20;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #FFFFFF;
+  border-radius: 18px;
+  padding: 1.15rem 1.1rem;
+  box-shadow: 0 10px 30px rgba(16, 24, 40, 0.08), 0 2px 6px rgba(16, 24, 40, 0.05);
+}
+.ea-card__kicker {
+  margin: 0 0 0.2rem;
+  font: 700 0.66rem/1 'Space Grotesk', sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #10A37F;
+}
+.ea-card__title {
+  margin: 0 0 0.9rem;
+  font: 600 1.1rem/1.15 'Space Grotesk', sans-serif;
+  letter-spacing: -0.01em;
+  color: #111827;
+}
+.ea-item {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.55rem 0;
+  text-decoration: none;
+}
+.ea-badge {
+  flex: 0 0 auto;
+  min-width: 3rem;
+  height: 1.9rem;
+  padding: 0 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  font: 700 0.7rem/1 'Space Grotesk', sans-serif;
+  letter-spacing: 0.04em;
+}
+.ea-badge--red   { background: #FEE2E2; color: #DC2626; }
+.ea-badge--amber { background: #FEF3C7; color: #D97706; }
+.ea-badge--blue  { background: #E0F2FE; color: #0284C7; }
+.ea-badge--green { background: #D1FAE5; color: #059669; }
+.ea-body { display: flex; flex-direction: column; gap: 2px; }
+.ea-title {
+  font: 700 0.8rem/1.2 'Space Grotesk', sans-serif;
+  letter-spacing: 0.03em;
+  color: #1F2937;
+}
+.ea-desc {
+  font: 400 0.72rem/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #6B7280;
+}
+a.ea-item { transition: transform 150ms ease; }
+a.ea-item:hover { transform: translateX(2px); }
+a.ea-item:hover .ea-title { color: #10A37F; }
+@media (max-width: 1180px) { .ea-card { display: none; } }
+
+/* ── Main container ───────────────────────────────────────── */
+.cira-main {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 6rem 2rem 12rem;
+}
+@media (min-width: 1181px) {
+  .cira-main {
+    max-width: none;
+    padding-left: 18.5rem;
+    padding-right: 3rem;
+  }
 }
 
-.glass-app::before {
-  width: 22rem;
-  height: 22rem;
-  top: 35%;
-  left: 28%;
-  background: rgba(56, 189, 248, 0.11);
+/* ── Hero ─────────────────────────────────────────────────── */
+.cira-heading {
+  margin: 0 0 0.75rem;
+  text-align: center;
+  color: #202123;
+  font: 600 clamp(2.5rem, 7vw, 4.5rem)/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.075em;
+  animation: cira-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.cira-heading--compact {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  margin-bottom: 1.5rem;
+}
+.cira-tagline {
+  margin: 0 auto 2.5rem;
+  max-width: 560px;
+  text-align: center;
+  color: #6B6C7B;
+  font: 400 clamp(0.95rem, 2vw, 1.1rem)/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  animation: cira-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+@keyframes cira-enter {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cira-heading, .cira-tagline { animation: none; }
 }
 
-.glass-app::after {
-  width: 18rem;
-  height: 18rem;
-  top: 45%;
-  right: 3%;
-  background: rgba(167, 139, 250, 0.12);
+/* ── Suggestion chips ─────────────────────────────────────── */
+.suggestions {
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  animation: cira-enter 700ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both;
+}
+.suggestion-chip {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border: 1px solid #E1E3E8;
+  border-radius: 14px;
+  background: #FFFFFF;
+  color: #343541;
+  font: 450 0.9rem/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.suggestion-chip:hover {
+  border-color: #10A37F;
+  background: #F7FCFA;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 16px rgba(16, 163, 127, 0.12);
+}
+@media (max-width: 560px) { .suggestions { grid-template-columns: 1fr; } }
+
+/* ── Workspace (chat + playbook) ──────────────────────────── */
+.cira-workspace { display: flex; gap: 2rem; align-items: flex-start; }
+.cira-workspace--single { justify-content: center; }
+.cira-workspace--single .chat-col { width: min(100%, 760px); }
+.chat-col { flex: 1.55 1 0; min-width: 0; }
+.playbook-col {
+  flex: 1 1 0;
+  min-width: 0;
+  position: sticky;
+  top: 5.5rem;
+  max-height: calc(100vh - 9rem);
+  overflow-y: auto;
 }
 
-.glass-header {
-  background: rgba(255, 255, 255, 0.70);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.66);
-  box-shadow: 0 12px 35px rgba(2, 12, 27, 0.14);
-  backdrop-filter: blur(22px) saturate(145%);
-  -webkit-backdrop-filter: blur(22px) saturate(145%);
-}
-
-/* Product identity: intentionally high contrast so the app is recognizable at a glance. */
-.cira-brand {
+/* ── Chat bubbles ─────────────────────────────────────────── */
+.msg-row { display: flex; gap: 0.65rem; margin: 0.5rem 0; align-items: flex-start; }
+.msg-row--user { flex-direction: row-reverse; }
+.avatar {
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+.avatar--assistant { background: #10A37F; color: #FFFFFF; }
+.avatar--user { background: #EEF2F7; color: #4B5563; }
+.bubble { font-size: 0.95rem; line-height: 1.6; color: #202123; }
+.bubble--assistant { padding: 0.4rem 0; max-width: 100%; }
+.bubble--user {
+  padding: 0.7rem 1rem;
+  max-width: 76%;
+  background: #EEF2F7;
+  border-radius: 18px 18px 4px 18px;
+}
+.bubble p { margin: 0 0 0.6rem; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble ul, .bubble ol { margin: 0.4rem 0; padding-left: 1.25rem; }
+.bubble a { color: #0E7490; }
+.bubble strong, .bubble h1, .bubble h2, .bubble h3 { color: #111827; }
+
+/* Typing indicator */
+.cira-typing { display: inline-flex; align-items: center; gap: 5px; padding: 0.5rem 0; }
+.cira-typing span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #9CA3AF; display: inline-block;
+  animation: cira-typing-bounce 1.2s ease-in-out infinite;
+}
+.cira-typing span:nth-child(2) { animation-delay: 0.18s; }
+.cira-typing span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes cira-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cira-typing span { animation: none; opacity: 0.7; }
 }
 
-.cira-brand__mark {
-  display: grid;
-  width: 2.5rem;
-  height: 2.5rem;
-  flex: 0 0 auto;
-  place-items: center;
-  color: #fef3c7;
-  border: 1px solid rgba(125, 211, 252, 0.38);
-  border-radius: 0.8rem;
-  background: linear-gradient(145deg, #145b85 0%, #082d47 100%);
-  box-shadow: 0 7px 18px rgba(8, 47, 73, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.17);
+/* ── Playbook panel ───────────────────────────────────────── */
+.pb-kicker {
+  margin: 0 0 0.35rem;
+  font: 700 0.7rem/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #10A37F;
 }
-
-.cira-brand__title-row {
+.pb-title {
+  margin: 0 0 0.25rem;
+  font: 650 1.2rem/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.025em;
+  color: #202123;
+}
+.pb-meta { margin: 0 0 1.1rem; color: #6B7280; font-size: 0.82rem; }
+.pb-section {
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  background: #FFFFFF;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+}
+.pb-section__head {
+  width: 100%;
   display: flex;
-  align-items: baseline;
-  gap: 0.65rem;
-  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font: 600 0.85rem/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #202123;
+  text-align: left;
+}
+.pb-section__head:hover { background: #F9FAFB; }
+.pb-section__body {
+  padding: 0.4rem 0.9rem 0.9rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #202123;
+  border-top: 1px solid #F1F3F5;
+}
+.pb-section__body p { margin: 0 0 0.6rem; }
+.pb-section__body ul, .pb-section__body ol { margin: 0.4rem 0; padding-left: 1.25rem; }
+.pb-section__body a { color: #0E7490; }
+.pb-section__body strong, .pb-section__body h1, .pb-section__body h2,
+.pb-section__body h3, .pb-section__body th { color: #111827; }
+.pb-locked {
+  background: #FAFAFA;
+  border: 1px solid #EEF0F2;
+  border-radius: 14px;
+  padding: 1.1rem;
+  color: #6B7280;
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
-.cira-brand__title {
-  margin: 0;
-  color: #082d47;
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.65rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.06em;
+/* ── Docked composer ──────────────────────────────────────── */
+.composer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  background: linear-gradient(to top, #FFFFFF 62%, rgba(255, 255, 255, 0));
+  padding-bottom: 1rem;
 }
-
-.cira-brand__title span {
-  color: #0ea5e9;
+@media (min-width: 1181px) {
+  .composer { padding-left: 18.5rem; padding-right: 3rem; }
 }
-
-.cira-brand__descriptor {
-  overflow: hidden;
-  color: #334155;
-  font-size: 0.64rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  line-height: 1.1;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.cira-brand__meta {
-  margin-top: 0.22rem;
-  overflow: hidden;
-  color: #64748b;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-@media (max-width: 720px) {
-  .cira-brand__descriptor,
-  .cira-brand__meta {
-    display: none;
-  }
-}
-
-.glass-workspace {
+.composer-inner { max-width: 760px; margin: 0 auto; padding: 1.25rem 1rem 0; }
+.composer-shell {
   position: relative;
-  z-index: 0;
+  display: flex;
+  align-items: flex-end;
+  border: 1px solid #E5E7EB;
+  border-radius: 26px;
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
+.composer-shell:focus-within {
+  border-color: #10A37F;
+  box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.12), 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.composer-input {
+  flex: 1 1 auto;
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: #1F2937;
+  caret-color: #10A37F;
+  font: 400 1rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 0.95rem 0.5rem 0.95rem 1.4rem;
+  max-height: 200px;
+}
+.composer-input::placeholder { color: #8E8EA0; }
+.composer-send {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 0.6rem 0.6rem 0;
+  border: none;
+  border-radius: 50%;
+  background: #10A37F;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.composer-send:hover:not(:disabled) { background: #0E8E6E; transform: scale(1.05); }
+.composer-send:disabled { background: #E1E3E8; cursor: default; }
 
-.glass-panel,
-.glass-tile {
-  border: 1px solid rgba(255, 255, 255, 0.66);
-  background: rgba(255, 255, 255, 0.64);
-  box-shadow: 0 16px 38px rgba(2, 12, 27, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.66);
-  backdrop-filter: blur(18px) saturate(135%);
-  -webkit-backdrop-filter: blur(18px) saturate(135%);
-}
-
-.glass-tile {
-  background: rgba(255, 255, 255, 0.52);
-  box-shadow: 0 8px 24px rgba(2, 12, 27, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.60);
-}
-
-.glass-tile:hover {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 13px 28px rgba(2, 12, 27, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.glass-composer {
-  border-top: 1px solid rgba(148, 163, 184, 0.26);
-  background: rgba(255, 255, 255, 0.34);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-/* Requested black glass input: #070b14 at exactly 70% opacity. */
-.glass-input {
-  border: 1px solid rgba(148, 163, 184, 0.38);
-  background: rgba(7, 11, 20, 0.70);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 24px rgba(2, 12, 27, 0.15);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
-}
-
-.glass-input:focus-within {
-  border-color: rgba(56, 189, 248, 0.86);
-  background: rgba(7, 11, 20, 0.76);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.17), inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 12px 28px rgba(2, 12, 27, 0.25);
-}
-
-.glass-field,
-.glass-select {
-  border: 1px solid rgba(148, 163, 184, 0.38);
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
-  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
-}
-
-.glass-field:focus,
-.glass-select:focus {
-  border-color: rgba(14, 116, 144, 0.75);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.78);
-}
-
-@media (max-width: 1024px) {
-  body { overflow: auto; }
-  .glass-app { height: auto; min-height: 100vh; overflow: visible; }
-  .glass-workspace { flex-direction: column; overflow: visible; }
-  .glass-workspace > div { width: 100%; overflow: visible; }
-}
-
-@layer utilities {
-  /* Custom scrollbar utility classes */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #CBD5E1;
-    border-radius: 4px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
-  }
-}
+/* ── Scrollbars ───────────────────────────────────────────── */
+.playbook-col::-webkit-scrollbar { width: 6px; }
+.playbook-col::-webkit-scrollbar-thumb { background: #E1E3E8; border-radius: 999px; }
+.playbook-col::-webkit-scrollbar-thumb:hover { background: #10A37F; }
